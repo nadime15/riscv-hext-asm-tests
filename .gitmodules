@@ -1,3 +1,3 @@
 [submodule "common/asm-env"]
 	path = common/asm-env
-	url = https://gitlab.kuleuven.be/u0165022/riscv-test-env.git
+	url = https://github.com/defermelowie/riscv-test-env
