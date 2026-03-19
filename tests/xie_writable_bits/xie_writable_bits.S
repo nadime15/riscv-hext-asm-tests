@@ -31,7 +31,7 @@ csrw hideleg, a0
 li TESTNUM, 1
 li t0, MIP_SSIP | MIP_VSSIP | MIP_MSIP | \
        MIP_STIP | MIP_VSTIP | MIP_MTIP | \
-       MIP_SEIP | MIP_VSEIP | MIP_MEIP | MIP_SGEIP
+       MIP_SEIP | MIP_VSEIP | MIP_MEIP | MIP_SGEIP | MIP_LCOFIP
 csrs mie, a0       // Try to set all bits
 csrr t1, mie
 bne t0, t1, fail   // Check if written bits are expected
@@ -40,7 +40,7 @@ csrr t1, mie
 bnez t1, fail      // Fail if unable to clear
 
 li TESTNUM, 2
-li t0, MIP_SSIP | MIP_STIP| MIP_SEIP
+li t0, MIP_SSIP | MIP_STIP| MIP_SEIP | MIP_LCOFIP
 csrs sie, a0       // Try to set all bits
 csrr t1, mie
 bne t0, t1, fail   // Check if written bits are expected
@@ -70,7 +70,7 @@ bnez t1, fail      // Fail if unable to clear
 csrs mie, a0 // Set all writable bits
 
 li TESTNUM, 5
-li t0, MIP_SSIP | MIP_STIP| MIP_SEIP
+li t0, MIP_SSIP | MIP_STIP| MIP_SEIP | MIP_LCOFIP
 csrr t1, sie
 bne t0, t1, fail   // Check if read bits are expected
 

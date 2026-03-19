@@ -58,7 +58,7 @@ ALL_TESTS = [
     "slat_VS_39_update_pte_A",
     "slat_VS_39_update_pte_D",
     "slat_HS_39_VS_39_gpage_fault",
-    "slat_VS_39_pseudoinst",
+    # "slat_VS_39_pseudoinst", : TEST DOES NOT WORK WITHOUT SVADU REGARDLESS OF WHETHER THIS TEST WAS COMPILED WITH OR WITHOUT -DSVADU
     "slat_HS_39_VS_VU_48",
     "slat_HS_39_VS_VU_57",
     "slat_HS_48_VS_VU_39",
@@ -123,29 +123,26 @@ class Emulator(ABC):
 
 
 class SailCSim(Emulator):
-    sim = Path("sail_riscv_sim")
     simflags = [
-        "--config",
-        "../rv64d_v128_e64.json",
-        # "--enable-pmp",
-        # "--enable-dirty-update",
-        # "--mtval-has-illegal-inst-bits",
-        # "--xtinst-has-transformed-inst",
+        "--trace-interrupt",
+        "--trace-exception",
+        "--config-override <(echo '{\"memory\":{\"translation\":{\"dirty_update\":true}}}')",
     ]
     timeout = 5
 
-    def __init__(self, cov: bool) -> None:
+    def __init__(self, cov: bool, sail_path: str) -> None:
         self.cov = cov
+        self.sail_path = sail_path
         super().__init__()
 
     def run(self, executable: Path, outdir: Path) -> bool:
         covflag = f"-c {outdir.joinpath('sail_model.cov')}" if self.cov else ""
-        cmd = f"{self.sim} {' '.join(self.simflags)} {covflag} {executable}"
+        cmd = f"{self.sail_path} {' '.join(self.simflags)} {covflag} {executable}"
         logfile = outdir.joinpath("trace.log")
         log.debug(f"Emulator cmd: \"{cmd}\"")
         try:
             with open(logfile, "wb") as logf:
-                subprocess.run(cmd, shell=True, stderr=logf,
+                subprocess.run(cmd, shell=True, executable="/bin/bash", stderr=logf,
                                stdout=logf, timeout=self.timeout, input=b"hello\n")
             with open(logfile, "r") as logf:
                 return ("SUCCESS" in logf.read())
@@ -404,6 +401,8 @@ if __name__ == "__main__":
                         help="Run test executables")
     parser.add_argument("-e", "--emulator", type=str,
                         help="Run with specific emulator (default: %(default)s)", default="sail-csim")
+    parser.add_argument("-s", "--sail-path", type=str, default="./build/c_emulator/sail_riscv_sim",
+                        help="Path to sail executable (overrides PATH lookup)")
     parser.add_argument("--cov", action='store_true',
                         help="Collect coverage info (sail-csim only)")
     parser.add_argument('-t', '--tests', nargs='+',
@@ -421,7 +420,7 @@ if __name__ == "__main__":
     match args.emulator:
         case "sail-csim":
             log.info("Using sail C emulator")
-            emul = SailCSim(args.cov)
+            emul = SailCSim(args.cov, args.sail_path)
         case "spike":
             log.info("Using spike emulator")
             emul = Spike()
