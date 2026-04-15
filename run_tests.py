@@ -126,7 +126,6 @@ class SailCSim(Emulator):
     simflags = [
         "--trace-interrupt",
         "--trace-exception",
-        "--config-override <(echo '{\"memory\":{\"translation\":{\"dirty_update\":true}}}')",
     ]
     timeout = 5
 
@@ -153,8 +152,7 @@ class SailCSim(Emulator):
             return False
 
     def build_vars(self):
-        # No special environment variables required for sail
-        return {}
+        return {"RISCV_SVADU": "true"}
 
 class Spike(Emulator):
     sim = Path("spike")
