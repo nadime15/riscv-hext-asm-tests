@@ -146,7 +146,7 @@ mtvec_handler:
     li TESTNUM, 0x11
     csrr t1, sstatus
     ld t2, 0(t0)
-    li t3, 0xfffffffffffffedd # Mask SPP, SIE & SPIE since they are changed by sret
+    li t3, 0xffffffffff7ffedd # Mask SPP, SIE, SPIE & SPELP since they are changed by sret
     and t1, t1, t3
     and t2, t2, t3
     bne t1, t2, fail
